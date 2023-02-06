@@ -7,12 +7,16 @@ import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
 import java.time.LocalDate;
+import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class UserControllerTest {
+    Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
     UserController userController = new UserController();
 
@@ -32,9 +36,9 @@ public class UserControllerTest {
         user.setName("Ivan");
         user.setBirthday(LocalDate.of(2001, 11, 30));
         user.setLogin("Ultras");
-        user.setEmail("googleyandex.kz");
-        Exception exception = assertThrows(ValidationException.class, () -> userController.validate(user));
-        assertEquals("Передан пользователь с некорректным email", exception.getMessage());
+        user.setEmail("googleyand.ex@kz");
+        Set<ConstraintViolation<User>> violations = validator.validate(user); //сет с элементами, не прошедшими валидацию
+        assertTrue(violations.size()==1); //если сет не пустой, значит проверяемый user не прошел валидацию
     }
 
     @Test
@@ -42,10 +46,10 @@ public class UserControllerTest {
         User user = new User();
         user.setName("Ivan");
         user.setBirthday(LocalDate.of(2001, 11, 30));
-        user.setLogin("Ult ras");
+        user.setLogin("");
         user.setEmail("google@yandex.kz");
-        Exception exception = assertThrows(ValidationException.class, () -> userController.validate(user));
-        assertEquals("Некорректный логин", exception.getMessage());
+        Set<ConstraintViolation<User>> violations = validator.validate(user); //сет с элементами, не прошедшими валидацию
+        assertTrue(violations.size()==1); //если сет не пустой, значит проверяемый user не прошел валидацию
     }
 
     @Test

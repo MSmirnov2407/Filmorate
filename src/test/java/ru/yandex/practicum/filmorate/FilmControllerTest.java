@@ -5,16 +5,18 @@ import ru.yandex.practicum.filmorate.controller.FilmController;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
+
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
 import java.time.LocalDate;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class FilmControllerTest {
 
+    Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
     FilmController filmController = new FilmController();
 
     @Test
@@ -29,14 +31,17 @@ public class FilmControllerTest {
 
     @Test
     public void badNameFilmValidation() {
+
         Film film = new Film();
         film.setName("");
         film.setDescription("really good movie");
         film.setDuration(122);
         film.setReleaseDate(LocalDate.of(2001, 11, 30));
-        Exception exception = assertThrows(ValidationException.class, () -> filmController.validate(film));
-        assertEquals("Передан фильм с пустым названием", exception.getMessage());
+
+        Set<ConstraintViolation<Film>> violations = validator.validate(film); //сет с элементами, не прошедшими валидацию
+        assertTrue(violations.size()==1); //если сет не пустой, значит проверяемый фильм не прошел валидацию
     }
+
 
     @Test
     public void badDescriptionFilmValidation() {
@@ -47,8 +52,8 @@ public class FilmControllerTest {
                 "Описание фильма длиннее 200 символовОписание фильма длиннее 200 символов");
         film.setDuration(122);
         film.setReleaseDate(LocalDate.of(2001, 11, 30));
-        Exception exception = assertThrows(ValidationException.class, () -> filmController.validate(film));
-        assertEquals("Описание фильма длиннее 200 символов", exception.getMessage());
+        Set<ConstraintViolation<Film>> violations = validator.validate(film); //сет с элементами, не прошедшими валидацию
+        assertTrue(violations.size()==1); //если сет не пустой, значит проверяемый фильм не прошел валидацию
     }
 
     @Test
@@ -69,7 +74,7 @@ public class FilmControllerTest {
         film.setDescription("really good movie");
         film.setDuration(0);
         film.setReleaseDate(LocalDate.of(2001, 11, 30));
-        Exception exception = assertThrows(ValidationException.class, () -> filmController.validate(film));
-        assertEquals("Продолжительность фильма <= 0", exception.getMessage());
+        Set<ConstraintViolation<Film>> violations = validator.validate(film); //сет с элементами, не прошедшими валидацию
+        assertTrue(violations.size()==1); //если сет не пустой, значит проверяемый фильм не прошел валидацию
     }
 }
