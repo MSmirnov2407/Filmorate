@@ -1,10 +1,13 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.AbstractService;
+import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.Valid;
 import java.time.LocalDate;
@@ -13,58 +16,53 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/users")
-@Slf4j
 public class UserController extends Controller<User> {
+
+    AbstractService<User> userService;
+
+    @Autowired
+    public UserController(AbstractService<User> userService) {
+        this.userService = userService;
+    }
+
     @GetMapping
-    public List<User> getFilms() {
-        return new ArrayList(elements.values());
+    public List<User> getUsers() {
+        return userService.getAll();
+    }
+
+    @GetMapping("/{id}")
+    public User getUserById(@PathVariable int id) {
+        return userService.getById(id);
     }
 
     @PostMapping
-    public User postNewFilm(@Valid @RequestBody User newUser) {
-        int newId = create(newUser); //сложили нового юзера в мапу, получили его id
-        log.info("Создан Пользователь. Id = {}, email = {}",newUser.getId(), newUser.getEmail());
-        return elements.get(newId); //вернули юзер из общей мапы юзеров
+    public User postNewUser(@Valid @RequestBody User newUser) {
+        return userService.create(newUser);
     }
 
     @PutMapping
-    public User postUser(@Valid @RequestBody User updatedUser) {
-        Integer updatedUserId = updatedUser.getId(); //из переданного юзера взали Id
-        if (!elements.containsKey(updatedUserId)) { //если не существует id - исключение
-            log.warn("Ошибка обновления юзера: не найден id");
-            throw new ValidationException("Ошибка обновления юзера: не найден id");
-        }
-        validate(updatedUser); //проверка корректности переданных данных перед обновлением
-        elements.put(updatedUserId, updatedUser); //Обновили юзера в мапе
-        log.info("Обновлен Пользователь. Id = {}, email = {}",updatedUser.getId(), updatedUser.getEmail());
-        return elements.get(updatedUser.getId()); //вернули обновленного юзера из общей мапы юзеров
+    public User putUser(@Valid @RequestBody User updatedUser) {
+        return userService.update(updatedUser);
     }
 
-    @Override
-    public void validate(User user) {
-        String validationError = ""; //текст ошибки валидации
-        boolean badValidation = false; //флаг неуспешной валидации
-        String login = user.getLogin(); //логин проверяемого пользователя
-//        if (user.getEmail().isBlank() || !user.getEmail().contains("@")) { //валидация email
-//            validationError = "Передан пользователь с некорректным email";
-//            log.warn(validationError);
-//            badValidation = true;
-//        }
-        if (/*login == null || login.isBlank() || */login.contains(" ")) { //валидация login
-            validationError = "Некорректный логин";
-            log.warn(validationError);
-            badValidation = true;
-        } else
-        if (user.getName()==null || user.getName().isBlank()) { // если логин корректный, а имя пустое, то подставляем логин
-            user.setName(login);
-        }
-        if (user.getBirthday().isAfter(LocalDate.now())) { //валидация даты рождения
-            validationError = "Дата рождения не может быть в будущем";
-            log.warn(validationError);
-            badValidation = true;
-        }
-        if (badValidation) { //в случае неуспешной валидации выбрасывается исключение
-            throw new ValidationException(validationError);
-        }
+    @PutMapping("/{id}/friends/{friendId}")
+    public void setFriendship(@PathVariable int id, @PathVariable int friendId) {
+        System.out.println("putMapping добавление друзей" + id +" fr "+friendId);
+        ((UserService) userService).addFriend(id, friendId);
+    }
+
+    @DeleteMapping("/{id}/friends/{friendId}")
+    public void deleteFriendship(@PathVariable int id, @PathVariable int friendId) {
+        ((UserService) userService).removeFriend(id, friendId);
+    }
+
+    @GetMapping("/{id}/friends")
+    public List<User> getFriends(@PathVariable int id) {
+        return ((UserService) userService).getFriends(id);
+    }
+
+    @GetMapping("/{id}/friends/common/{otherId}")
+    public List<User> getCommonFriends (@PathVariable int id, @PathVariable int otherId){
+        return  ((UserService) userService).getCommonFriends(id,otherId);
     }
 }

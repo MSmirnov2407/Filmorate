@@ -4,6 +4,12 @@ import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.controller.FilmController;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
+import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
+import ru.yandex.practicum.filmorate.storage.Storage;
 
 
 import javax.validation.ConstraintViolation;
@@ -17,7 +23,11 @@ import static org.junit.jupiter.api.Assertions.*;
 public class FilmControllerTest {
 
     Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
-    FilmController filmController = new FilmController();
+
+    Storage<Film> filmStorage = new InMemoryFilmStorage();
+    Storage<User> userStorage = new InMemoryUserStorage();
+    FilmService filmService = new FilmService(filmStorage,userStorage);
+    FilmController filmController = new FilmController(filmService);
 
     @Test
     public void goodFilmValidation() {
@@ -26,7 +36,7 @@ public class FilmControllerTest {
         film.setDescription("really good movie");
         film.setDuration(122);
         film.setReleaseDate(LocalDate.of(2001, 11, 30));
-        filmController.validate(film);
+        filmController.postNewFilm(film);
     }
 
     @Test
@@ -63,8 +73,8 @@ public class FilmControllerTest {
         film.setDescription("really good movie");
         film.setDuration(122);
         film.setReleaseDate(LocalDate.of(1001, 11, 30));
-        Exception exception = assertThrows(ValidationException.class, () -> filmController.validate(film));
-        assertEquals("Дата релиза раньше 28 дек.1895г.", exception.getMessage());
+        Exception exception = assertThrows(ValidationException.class, () -> filmController.postNewFilm(film));
+        assertEquals("Дата релиза раньше, чем 1895-12-28", exception.getMessage());
     }
 
     @Test

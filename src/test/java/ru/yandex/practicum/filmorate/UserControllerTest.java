@@ -6,6 +6,11 @@ import ru.yandex.practicum.filmorate.controller.UserController;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
+import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
+import ru.yandex.practicum.filmorate.storage.Storage;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
@@ -18,7 +23,9 @@ import static org.junit.jupiter.api.Assertions.*;
 public class UserControllerTest {
     Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
-    UserController userController = new UserController();
+    Storage<User> userStorage = new InMemoryUserStorage();
+    UserService userService = new UserService(userStorage);
+    UserController userController = new UserController(userService);
 
     @Test
     public void goodUserValidation() {
@@ -27,7 +34,7 @@ public class UserControllerTest {
         user.setBirthday(LocalDate.of(2001, 11, 30));
         user.setLogin("Ultras");
         user.setEmail("google@yandex.kz");
-        userController.validate(user);
+        userController.postNewUser(user);
     }
 
     @Test
@@ -59,7 +66,7 @@ public class UserControllerTest {
         user.setBirthday(LocalDate.of(3001, 11, 30));
         user.setLogin("Ultras");
         user.setEmail("google@yandex.kz");
-        Exception exception = assertThrows(ValidationException.class, () -> userController.validate(user));
+        Exception exception = assertThrows(ValidationException.class, () -> userController.postNewUser(user));
         assertEquals("Дата рождения не может быть в будущем", exception.getMessage());
     }
 }
