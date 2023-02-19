@@ -1,6 +1,8 @@
 package ru.yandex.practicum.filmorate;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import ru.yandex.practicum.filmorate.controller.FilmController;
 import ru.yandex.practicum.filmorate.controller.UserController;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
@@ -20,12 +22,20 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@SpringBootTest
 public class UserControllerTest {
     Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
-    Storage<User> userStorage = new InMemoryUserStorage();
-    UserService userService = new UserService(userStorage);
-    UserController userController = new UserController(userService);
+    Storage<User> userStorage;
+    UserService userService;
+    UserController userController;
+
+    @Autowired
+    public UserControllerTest(Storage<User> userStorage, UserService userService, UserController userController) {
+        this.userStorage = userStorage;
+        this.userService = userService;
+        this.userController = userController;
+    }
 
     @Test
     public void goodUserValidation() {
@@ -34,7 +44,12 @@ public class UserControllerTest {
         user.setBirthday(LocalDate.of(2001, 11, 30));
         user.setLogin("Ultras");
         user.setEmail("google@yandex.kz");
-        userController.postNewUser(user);
+        /*проверка валидации, реализованной через аннотации*/
+        Set<ConstraintViolation<User>> violations = validator.validate(user); //сет с элементами, не прошедшими валидацию
+        assertTrue(violations.size() == 0); //если сет пустой, значит проверяемый фильм прошел валидацию
+        /*проверка дополнительной валидации, сделанной через метод validate*/
+        assertDoesNotThrow(() -> userController.postNewUser(user));
+
     }
 
     @Test
@@ -45,7 +60,7 @@ public class UserControllerTest {
         user.setLogin("Ultras");
         user.setEmail("googleyand.ex@kz");
         Set<ConstraintViolation<User>> violations = validator.validate(user); //сет с элементами, не прошедшими валидацию
-        assertTrue(violations.size()==1); //если сет не пустой, значит проверяемый user не прошел валидацию
+        assertTrue(violations.size() == 1); //если сет не пустой, значит проверяемый user не прошел валидацию
     }
 
     @Test
@@ -56,7 +71,7 @@ public class UserControllerTest {
         user.setLogin("");
         user.setEmail("google@yandex.kz");
         Set<ConstraintViolation<User>> violations = validator.validate(user); //сет с элементами, не прошедшими валидацию
-        assertTrue(violations.size()==1); //если сет не пустой, значит проверяемый user не прошел валидацию
+        assertTrue(violations.size() == 1); //если сет не пустой, значит проверяемый user не прошел валидацию
     }
 
     @Test

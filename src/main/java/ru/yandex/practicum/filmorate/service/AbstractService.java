@@ -10,7 +10,7 @@ import java.util.List;
 
 @Slf4j
 public abstract class AbstractService <T extends Element>{
-    Storage<T> storage; //хранилище элементов
+    protected Storage<T> storage; //хранилище элементов
     /**
      * Сохранение элемента в хранилище, с предварительной валидацией и присвоением id
      * @param element - элемент, который необходимо сохранить в хранилище

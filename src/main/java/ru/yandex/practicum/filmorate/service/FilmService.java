@@ -19,7 +19,7 @@ public class FilmService extends AbstractService<Film> {
     /*константа для хранения нижней допустимой временной границы даты релиза фильмов*/
     public static final LocalDate OLDEST_RELEASE_DATE = LocalDate.of(1895, 12, 28);
 
-    Storage<User> userStorage;
+    private final Storage<User> userStorage;
 
     @Autowired
     public FilmService(Storage<Film> filmStorage, Storage<User> userStorage) {

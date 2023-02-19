@@ -16,9 +16,10 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/users")
+@Slf4j
 public class UserController extends Controller<User> {
 
-    AbstractService<User> userService;
+    private final AbstractService<User> userService;
 
     @Autowired
     public UserController(AbstractService<User> userService) {
@@ -27,42 +28,52 @@ public class UserController extends Controller<User> {
 
     @GetMapping
     public List<User> getUsers() {
+        log.info("Получен список пользователей");
         return userService.getAll();
     }
 
     @GetMapping("/{id}")
     public User getUserById(@PathVariable int id) {
-        return userService.getById(id);
+        User user = userService.getById(id);
+        log.info("Получен пользователь по id={}", user.getId());
+        return user;
     }
 
     @PostMapping
     public User postNewUser(@Valid @RequestBody User newUser) {
-        return userService.create(newUser);
+        User user = userService.create(newUser);
+        log.info("Создан Пользователь. Id = {}, email = {}",user.getId(), user.getEmail());
+        return user;
     }
 
     @PutMapping
     public User putUser(@Valid @RequestBody User updatedUser) {
-        return userService.update(updatedUser);
+        User user= userService.update(updatedUser);
+        log.info("Обновлен Пользователь. Id = {}, email = {}",user.getId(), user.getEmail());
+        return user;
     }
 
     @PutMapping("/{id}/friends/{friendId}")
     public void setFriendship(@PathVariable int id, @PathVariable int friendId) {
-        System.out.println("putMapping добавление друзей" + id +" fr "+friendId);
         ((UserService) userService).addFriend(id, friendId);
+        log.info("Пользователю с id={} добавлен в друзья пользователь с id={}", id, friendId);
     }
 
     @DeleteMapping("/{id}/friends/{friendId}")
     public void deleteFriendship(@PathVariable int id, @PathVariable int friendId) {
         ((UserService) userService).removeFriend(id, friendId);
+        log.info("У пользователя с id={} удален из друзей пользователь с id={}", id, friendId);
     }
 
     @GetMapping("/{id}/friends")
     public List<User> getFriends(@PathVariable int id) {
+        log.info("У пользователя с id={} запрошен список друзей", id);
         return ((UserService) userService).getFriends(id);
     }
 
     @GetMapping("/{id}/friends/common/{otherId}")
     public List<User> getCommonFriends (@PathVariable int id, @PathVariable int otherId){
+        log.info("У пользователей с id={}  и {} запрошен список общих друзей", id, otherId);
         return  ((UserService) userService).getCommonFriends(id,otherId);
     }
 }
