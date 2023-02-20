@@ -5,5 +5,5 @@ import lombok.NonNull;
 
 @Data
 public abstract class Element {
-    public int id; //целочисленный идентификатор
+    protected int id; //целочисленный идентификатор
 }

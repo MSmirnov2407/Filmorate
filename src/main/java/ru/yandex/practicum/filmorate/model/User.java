@@ -2,7 +2,6 @@ package ru.yandex.practicum.filmorate.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
@@ -11,7 +10,6 @@ import javax.validation.constraints.Pattern;
 import java.time.LocalDate;
 import java.util.*;
 
-@EqualsAndHashCode(callSuper = true)
 @Data
 public class User extends Element {
     @NotBlank

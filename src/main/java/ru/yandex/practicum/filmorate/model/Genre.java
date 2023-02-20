@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.model;
 
 import lombok.Data;
 
+import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import java.util.HashMap;
 import java.util.Map;
@@ -10,7 +11,15 @@ import java.util.Objects;
 @Data
 public class Genre extends Element {
 
+    public Genre(){
+
+    }
+    public Genre(int id, String name){
+        this.id = id;
+        this.name = name;
+    }
     @Min(1)
+    @Max(255)
     private String name; //название жанра
 
     /**

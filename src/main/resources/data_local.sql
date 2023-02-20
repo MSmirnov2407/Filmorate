@@ -56,19 +56,19 @@ INSERT INTO users (login,email,birthday,name) VALUES ('Cpp','cpp@ppc.com','1985-
 INSERT INTO users (login,email,birthday,name) VALUES ('Python','vape@hipster.com','1989-05-05','PYname'); --8
 
 --заполняем таблицу дружбы
-INSERT INTO friendship (user_id,friend_id,status) VALUES ('1','4',1);
-INSERT INTO friendship (user_id,friend_id,status) VALUES ('1','5',1);
-INSERT INTO friendship (user_id,friend_id,status) VALUES ('1','6',1);
-INSERT INTO friendship (user_id,friend_id,status) VALUES ('1','7',0);
+INSERT INTO friendship (user_id,friend_id) VALUES ('1','4');
+INSERT INTO friendship (user_id,friend_id) VALUES ('1','5');
+INSERT INTO friendship (user_id,friend_id) VALUES ('1','6');
+INSERT INTO friendship (user_id,friend_id) VALUES ('1','7');
 
-INSERT INTO friendship (user_id,friend_id,status) VALUES ('2','4',1);
-INSERT INTO friendship (user_id,friend_id,status) VALUES ('2','5',1);
-INSERT INTO friendship (user_id,friend_id,status) VALUES ('2','7',1);
+INSERT INTO friendship (user_id,friend_id) VALUES ('2','4');
+INSERT INTO friendship (user_id,friend_id) VALUES ('2','5');
+INSERT INTO friendship (user_id,friend_id) VALUES ('2','7');
 
-INSERT INTO friendship (user_id,friend_id,status) VALUES ('3','1',1);
-INSERT INTO friendship (user_id,friend_id,status) VALUES ('3','2',1);
+INSERT INTO friendship (user_id,friend_id) VALUES ('3','1');
+INSERT INTO friendship (user_id,friend_id) VALUES ('3','2');
 
-INSERT INTO friendship (user_id,friend_id,status) VALUES ('4','5',0);
+INSERT INTO friendship (user_id,friend_id) VALUES ('4','5');
 
 --заполняем таблицу лайков
 INSERT INTO likes (film_id,user_id) VALUES (1,1);

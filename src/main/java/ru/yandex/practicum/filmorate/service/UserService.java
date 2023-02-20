@@ -8,7 +8,6 @@ import ru.yandex.practicum.filmorate.dao.UserDbStorage;
 import ru.yandex.practicum.filmorate.exceptions.ElementNotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.Storage;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -17,32 +16,29 @@ import java.util.Set;
 
 @Service
 @Slf4j
-public class UserService extends AbstractService<User> {
+public class UserService extends AbstractService<User, UserDbStorage> {
 
     @Autowired
-    public UserService(@Qualifier("userDbStorage") Storage<User> storage) {
+    public UserService(@Qualifier("userDbStorage") UserDbStorage storage) {
         this.storage = storage;
     }
 
     @Override
     void validate(User user) {
         String validationError = ""; //текст ошибки валидации
-        boolean badValidation = false; //флаг неуспешной валидации
         String login = user.getLogin(); //логин проверяемого пользователя
 
         if (login.contains(" ")) { //валидация login
             validationError = "Некорректный логин";
             log.warn(validationError);
-            badValidation = true;
+            throw new ValidationException(validationError);
+
         } else if (user.getName() == null || user.getName().isBlank()) { // если логин корректный, а имя пустое, то подставляем логин
             user.setName(login);
         }
         if (user.getBirthday().isAfter(LocalDate.now())) { //валидация даты рождения
             validationError = "Дата рождения не может быть в будущем";
             log.warn(validationError);
-            badValidation = true;
-        }
-        if (badValidation) { //в случае неуспешной валидации выбрасывается исключение
             throw new ValidationException(validationError);
         }
     }
@@ -61,7 +57,7 @@ public class UserService extends AbstractService<User> {
             log.warn("не существующий id");
             throw new ElementNotFoundException("пользователь не найден");
         }
-        ((UserDbStorage) storage).addFriend(user, friend); //добавили запись в таблицу дружбы
+        storage.addFriend(user, friend); //добавили запись в таблицу дружбы
     }
 
     /**
@@ -77,7 +73,7 @@ public class UserService extends AbstractService<User> {
             log.warn("не существующий id");
             throw new ElementNotFoundException("пользователь не найден");
         }
-        ((UserDbStorage) storage).deleteFriend(user, friend); //удалили запись из таблицы дружбы
+        storage.deleteFriend(user, friend); //удалили запись из таблицы дружбы
     }
 
     /**
@@ -92,7 +88,7 @@ public class UserService extends AbstractService<User> {
             log.warn("пользователь не найден");
             throw new ElementNotFoundException("пользователь не найден");
         }
-        return new ArrayList(((UserDbStorage) storage).getFriendsByUserId(id));
+        return new ArrayList(storage.getFriendsByUserId(id));
     }
 
     /**
@@ -105,10 +101,14 @@ public class UserService extends AbstractService<User> {
     public List<User> getCommonFriends(int idUser1, int idUser2) {
         User user1 = storage.getById(idUser1); //получили из хранилища одного пользователя
         User user2 = storage.getById(idUser2); //получили из хранилища другого пользователя
-        if (user1 == null || user2 == null) {
+        if (user1 == null) {
             log.warn("не существующий id");
-            throw new ElementNotFoundException("пользователь не найден");
+            throw new ElementNotFoundException("пользователь 1 не найден");
         }
-        return ((UserDbStorage) storage).getCommonFriends(user1, user2);
+        if (user2 == null) {
+            log.warn("не существующий id");
+            throw new ElementNotFoundException("пользователь 2 не найден");
+        }
+        return storage.getCommonFriends(user1, user2);
     }
 }

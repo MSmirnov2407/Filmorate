@@ -13,12 +13,12 @@ import java.util.List;
 @RestController
 @RequestMapping("/users")
 @Slf4j
-public class UserController extends Controller<User> {
+public class UserController {
 
-    private final AbstractService<User> userService;
+    private final UserService userService;
 
     @Autowired
-    public UserController(AbstractService<User> userService) {
+    public UserController(UserService userService) {
         this.userService = userService;
     }
 
@@ -57,25 +57,25 @@ public class UserController extends Controller<User> {
 
     @PutMapping("/{id}/friends/{friendId}")
     public void setFriendship(@PathVariable int id, @PathVariable int friendId) {
-        ((UserService) userService).addFriend(id, friendId);
+        userService.addFriend(id, friendId);
         log.info("Пользователю с id={} добавлен в друзья пользователь с id={}", id, friendId);
     }
 
     @DeleteMapping("/{id}/friends/{friendId}")
     public void deleteFriendship(@PathVariable int id, @PathVariable int friendId) {
-        ((UserService) userService).removeFriend(id, friendId);
+        userService.removeFriend(id, friendId);
         log.info("У пользователя с id={} удален из друзей пользователь с id={}", id, friendId);
     }
 
     @GetMapping("/{id}/friends")
     public List<User> getFriends(@PathVariable int id) {
         log.info("У пользователя с id={} запрошен список друзей", id);
-        return ((UserService) userService).getFriends(id);
+        return userService.getFriends(id);
     }
 
     @GetMapping("/{id}/friends/common/{otherId}")
     public List<User> getCommonFriends(@PathVariable int id, @PathVariable int otherId) {
         log.info("У пользователей с id={}  и {} запрошен список общих друзей", id, otherId);
-        return ((UserService) userService).getCommonFriends(id, otherId);
+        return userService.getCommonFriends(id, otherId);
     }
 }

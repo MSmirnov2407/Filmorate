@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.controller;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.dao.GenreDbStorage;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.service.AbstractService;
 
@@ -12,12 +13,12 @@ import java.util.List;
 @RestController
 @RequestMapping("/genres")
 @Slf4j
-public class GenreController extends Controller<Genre> {
+public class GenreController {
 
-    private final AbstractService<Genre> genreService;
+    private final AbstractService<Genre, GenreDbStorage> genreService;
 
     @Autowired
-    public GenreController(AbstractService<Genre> genreService) {
+    public GenreController(AbstractService<Genre,GenreDbStorage> genreService) {
         this.genreService = genreService;
     }
 

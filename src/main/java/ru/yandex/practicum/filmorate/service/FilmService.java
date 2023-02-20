@@ -5,11 +5,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dao.FilmDbStorage;
+import ru.yandex.practicum.filmorate.dao.UserDbStorage;
 import ru.yandex.practicum.filmorate.exceptions.ElementNotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.Storage;
+import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -17,14 +19,14 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
-public class FilmService extends AbstractService<Film> {
+public class FilmService extends AbstractService<Film, FilmDbStorage> {
     /*константа для хранения нижней допустимой временной границы даты релиза фильмов*/
     public static final LocalDate OLDEST_RELEASE_DATE = LocalDate.of(1895, 12, 28);
-    private final Storage<User> userStorage;
+    private final UserStorage userStorage;
 
     @Autowired
-    public FilmService(@Qualifier("filmDbStorage") Storage<Film> storage,
-                       @Qualifier("userDbStorage") Storage<User> userStorage) {
+    public FilmService(@Qualifier("filmDbStorage") FilmDbStorage storage,
+                       @Qualifier("userDbStorage") UserDbStorage userStorage) {
         this.storage = storage;
         this.userStorage = userStorage;
     }
@@ -32,13 +34,9 @@ public class FilmService extends AbstractService<Film> {
     @Override
     void validate(Film film) {
         String validationError = ""; //текст ошибки валидации
-        boolean badValidation = false; //флаг неуспешной валидации
         if (film.getReleaseDate().isBefore(OLDEST_RELEASE_DATE)) { //валидация даты релиза
             validationError = "Дата релиза раньше, чем " + OLDEST_RELEASE_DATE;
             log.warn(validationError);
-            badValidation = true;
-        }
-        if (badValidation) { //в случае неуспешной валидации выбрасывается исключение
             throw new ValidationException(validationError);
         }
     }
@@ -60,7 +58,7 @@ public class FilmService extends AbstractService<Film> {
             log.warn("пользователь не найден");
             throw new ElementNotFoundException("пользователь не найден");
         }
-        ((FilmDbStorage) storage).addLike(film, user); //добавили запись в таблицу лайков
+        storage.addLike(film, user); //добавили запись в таблицу лайков
     }
 
     /**
@@ -80,7 +78,7 @@ public class FilmService extends AbstractService<Film> {
             log.warn("пользователь не найден");
             throw new ElementNotFoundException("пользователь не найден");
         }
-        ((FilmDbStorage) storage).deleteLike(film, user); //удалили пользователя из списка лайкнувших
+        storage.deleteLike(film, user); //удалили пользователя из списка лайкнувших
     }
 
     /**
@@ -90,17 +88,6 @@ public class FilmService extends AbstractService<Film> {
      */
     public List<Film> getPopularFilms(int count) {
         return storage.getAll().stream()
-                .sorted((f1, f2) -> {
-                    int cmp = 0;
-                    if (((FilmDbStorage) storage).getLikeAmountByFilm(f1.getId()) >
-                            ((FilmDbStorage) storage).getLikeAmountByFilm(f2.getId())) {
-                        cmp = -1;
-                    } else if (((FilmDbStorage) storage).getLikeAmountByFilm(f1.getId()) <
-                            ((FilmDbStorage) storage).getLikeAmountByFilm(f2.getId())) {
-                        cmp = 1;
-                    }
-                    return cmp;
-                })
                 .limit(count)
                 .collect(Collectors.toList());
     }

@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.controller;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.dao.MpaRatingDbStorage;
 import ru.yandex.practicum.filmorate.model.MpaRating;
 import ru.yandex.practicum.filmorate.service.AbstractService;
 
@@ -12,11 +13,11 @@ import java.util.List;
 @RestController
 @RequestMapping("/mpa")
 @Slf4j
-public class MpaRatingController extends Controller<MpaRating> {
-    private final AbstractService<MpaRating> mpaRatingService;
+public class MpaRatingController {
+    private final AbstractService<MpaRating, MpaRatingDbStorage> mpaRatingService;
 
     @Autowired
-    public MpaRatingController(AbstractService<MpaRating> mpaRatingService) {
+    public MpaRatingController(AbstractService<MpaRating,MpaRatingDbStorage> mpaRatingService) {
         this.mpaRatingService = mpaRatingService;
     }
 

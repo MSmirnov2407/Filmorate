@@ -4,6 +4,7 @@ package ru.yandex.practicum.filmorate.model;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import java.util.HashMap;
 import java.util.Map;
@@ -12,6 +13,7 @@ import java.util.Map;
 @Data
 public class MpaRating extends Element {
     @Min(1)
+    @Max(255)
     private String name; //название рейтинга фильма
 
     /**

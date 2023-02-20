@@ -51,4 +51,16 @@ public class Film extends Element {
 
         return values;
     }
+
+    /**
+     * Добавление жанра к фильму
+     * @param genreId - id жанра
+     * @param genreName - название жанра
+     */
+    public void addGenre(int genreId, String genreName){
+        Genre genre = new Genre();
+        genre.setId(genreId);
+        genre.setName(genreName);
+        this.genres.add(genre);
+    }
 }

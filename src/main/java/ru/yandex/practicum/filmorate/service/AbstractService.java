@@ -9,8 +9,8 @@ import ru.yandex.practicum.filmorate.storage.Storage;
 import java.util.List;
 
 @Slf4j
-public abstract class AbstractService<T extends Element> {
-    protected Storage<T> storage; //хранилище элементов
+public abstract class AbstractService<T extends Element, S extends Storage> {
+    protected S storage; //хранилище элементов
 
     /**
      * Сохранение элемента в хранилище, с предварительной валидацией и присвоением id
@@ -21,7 +21,7 @@ public abstract class AbstractService<T extends Element> {
     public T create(T element) {
         validate(element); //проверка валидности данных
         int newId = storage.create(element); //сохранили в хранилище
-        return storage.getById(newId);
+        return (T) storage.getById(newId);
     }
 
     /**
@@ -38,9 +38,8 @@ public abstract class AbstractService<T extends Element> {
         }
         validate(updatedElement); //проверка корректности переданных данных перед обновление
         int id = storage.update(updatedElement); //обновили данные в хранилище
-        log.warn("abstract service после storage.update");
 
-        return storage.getById(id);
+        return (T) storage.getById(id);
     }
 
     /**
@@ -68,7 +67,7 @@ public abstract class AbstractService<T extends Element> {
      * @return
      */
     public T getById(int id) {
-        T element = storage.getById(id);
+        T element = (T) storage.getById(id);
         if (element == null) {
             throw new ElementNotFoundException("Элемент не найден");
         }

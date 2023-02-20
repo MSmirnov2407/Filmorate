@@ -100,16 +100,22 @@ public class UserDbStorage implements UserStorage {
         });
 
         /*получаем друзей пользователя из БД*/
-        String sqlQuery = "select u.user_id, f.friend_id " +
+        String sqlQuery = "select u.user_id, f.friend_id, u2.login, u2.email, u2.name, u2.birthday " +
                 "FROM users AS u " +
                 "INNER JOIN friendship AS f ON u.user_id = f.user_id " +
-                "WHERE u.user_id = ? AND status = 1;"; //запрос для получения друзей пользователя
+                "INNER JOIN users AS u2 ON u2.user_id = f.friend_id " +
+                "WHERE u.user_id = ?;"; //запрос для получения друзей пользователя
         SqlRowSet userRows = jdbcTemplate.queryForRowSet(sqlQuery, userId); //отправка запроса и сохранение результатов в SqlRowSet
 
-        /*превращаем полученные friend_id в сет объектов типа User*/
-        while (userRows.next()) { //проходим по всем строкам, извлекаем friend_id и складываем в сет
-            int friendId = userRows.getInt("friend_id"); //извлекаем значение
-            friends.add(this.getById(friendId));
+        /*превращаем полученные данные в сет объектов типа User*/
+        while (userRows.next()) { //проходим по всем строкам, извлекаем данные друга и складываем в сет новый объект User
+            User friend = new User();
+            friend.setId(userRows.getInt("friend_id"));
+            friend.setLogin(userRows.getString("login"));
+            friend.setName(userRows.getString("name"));
+            friend.setEmail(userRows.getString("email"));
+            friend.setBirthday(userRows.getDate("birthday").toLocalDate());
+            friends.add(friend);
         }
         return friends;
     }
@@ -127,10 +133,10 @@ public class UserDbStorage implements UserStorage {
 
         /*обновляем данные в таблице friendship*/
         /*удаляем старые данные в таблице friendship*/
-        String sqlQuery = "delete from friendship where user_id = ? AND status =1;";
+        String sqlQuery = "delete from friendship where user_id = ?";
         jdbcTemplate.update(sqlQuery, userId);
         /*добавляем новые данные в таблицу friendship*/
-        final String sqlInsertQuery = "insert into friendship(user_id,friend_id,status) values(?,?, 1)";
+        final String sqlInsertQuery = "insert into friendship(user_id,friend_id) values(?,?)";
         friends.forEach(f -> jdbcTemplate.update(sqlInsertQuery, userId, f.getId()));
     }
 
@@ -146,7 +152,7 @@ public class UserDbStorage implements UserStorage {
 
         /*обновляем данные в таблице friendship*/
         /*удаляем старые данные в таблице friendship*/
-        String sqlQuery = "delete from friendship where user_id = ? AND friend_id = ? AND status =1;";
+        String sqlQuery = "delete from friendship where user_id = ? AND friend_id = ?;";
         jdbcTemplate.update(sqlQuery, userId, friendId);
     }
 
@@ -161,16 +167,22 @@ public class UserDbStorage implements UserStorage {
         int user2Id = user2.getId();
         List<User> commonFriends = new ArrayList<>();
 
-        String sqlQuery = "SELECT f1.friend_id " +
+        String sqlQuery = "SELECT f1.friend_id, u.login, u.email, u.name, u.birthday " +
                 "FROM friendship AS f1 " +
                 "JOIN friendship AS f2 ON f1.friend_id = f2.friend_id " +
-                "WHERE f1.user_id = ? AND f2.user_id = ? AND f1.status = 1 AND f2.status = 1;";
+                "JOIN users AS u ON u.user_id = f2.friend_id " +
+                "WHERE f1.user_id = ? AND f2.user_id = ?;";
         SqlRowSet userRows = jdbcTemplate.queryForRowSet(sqlQuery, user1Id, user2Id); //отправка запроса и сохранение результатов в SqlRowSet
 
-        /*превращаем полученные friend_id в список объектов типа User*/
-        while (userRows.next()) { //проходим по всем строкам, извлекаем friend_id и складываем в сет
-            int friendId = userRows.getInt("friend_id"); //извлекаем значение
-            commonFriends.add(this.getById(friendId));
+        /*превращаем полученные данные в список объектов типа User*/
+        while (userRows.next()) { //проходим по всем строкам, извлекаем данные друга и складываем в сет новый объект User
+            User friend = new User();
+            friend.setId(userRows.getInt("friend_id"));
+            friend.setLogin(userRows.getString("login"));
+            friend.setName(userRows.getString("name"));
+            friend.setEmail(userRows.getString("email"));
+            friend.setBirthday(userRows.getDate("birthday").toLocalDate());
+            commonFriends.add(friend);
         }
         return commonFriends;
     }
