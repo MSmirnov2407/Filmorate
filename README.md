@@ -33,30 +33,28 @@ Template repository for Filmorate project.
 	FROM Friendship
 	WHERE User_2 = 'Login88' AND Status = 1
 				AND User_1 IN (
+						SELECT User_2
+						FROM Friendship
+						WHERE User_1 = 'Login99' AND Status = 1
 
-								SELECT User_2
-								FROM Friendship
-								WHERE User_1 = 'Login99' AND Status = 1
+						UNION
 
-								UNION
-
-								SELECT User_1
-								FROM Friendship
-								WHERE User_2 = 'Login99' AND Status = 1
-								)
+						SELECT User_1
+						FROM Friendship
+						WHERE User_2 = 'Login99' AND Status = 1
+						)
 	UNION
 	SELECT User_2
 	FROM Friendship
 	WHERE User_1= 'Login88' AND Status = 1
 				AND User_2 IN (
+						SELECT User_2
+						FROM Friendship
+						WHERE User_1 = 'Login99' AND Status = 1
 
-								SELECT User_2
-								FROM Friendship
-								WHERE User_1 = 'Login99' AND Status = 1
+						UNION
 
-								UNION
-
-								SELECT User_1
-								FROM Friendship
-								WHERE User_2 = 'Login99' AND Status = 1
-								)
+						SELECT User_1
+						FROM Friendship
+						WHERE User_2 = 'Login99' AND Status = 1
+						)
