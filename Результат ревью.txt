@@ -1,0 +1,21 @@
+Проверил: Игорь Астафьев
+
+В PostgreSQL имена идентификаторов всегда преобразуются в нижний регистр, если только имя идентификатора не заключено в двойные кавычки.
+https://stackoverflow.com/questions/43111996/why-postgresql-does-not-like-uppercase-table-names
+
+Названия таблиц и полей лучше писать в нижнем регистре и через подчеркивание:
+ReleaseDate -> release_date
+
+Таблица film
+Поле Rating лучше назвать rating_id, т.к. это внешний ключ и ссылается на поле rating_id в табл rating
+
+Таблица user
+Лучше добавить поле id и сделать его PK.
+На него будут ссылаться внешние ключи в связанных таблицах
+
+Таблица like
+Лучше назвать film_likes
+Поле Login -> user_id type int
+
+Таблица friendship
+Лучше назвать поля user_id и friend_id type int, они будут ссылаться на поле user.id
