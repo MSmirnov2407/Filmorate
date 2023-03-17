@@ -3,15 +3,11 @@ package ru.yandex.practicum.filmorate.controller;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exceptions.ValidationException;
-import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.AbstractService;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.Valid;
-import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -42,15 +38,21 @@ public class UserController extends Controller<User> {
     @PostMapping
     public User postNewUser(@Valid @RequestBody User newUser) {
         User user = userService.create(newUser);
-        log.info("Создан Пользователь. Id = {}, email = {}",user.getId(), user.getEmail());
+        log.info("Создан Пользователь. Id = {}, email = {}", user.getId(), user.getEmail());
         return user;
     }
 
-    @PutMapping
-    public User putUser(@Valid @RequestBody User updatedUser) {
-        User user= userService.update(updatedUser);
-        log.info("Обновлен Пользователь. Id = {}, email = {}",user.getId(), user.getEmail());
-        return user;
+    @PutMapping()
+    public User updateUser(@Valid @RequestBody User updatedUser) {
+        User newuser = userService.update(updatedUser);
+        log.info("Обновлен Пользователь. Id = {}, email = {}", newuser.getId(), newuser.getEmail());
+        return newuser;
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteUser(@PathVariable int id) {
+        userService.delete(id);
+        log.info("удален Пользователь. Id = {}", id);
     }
 
     @PutMapping("/{id}/friends/{friendId}")

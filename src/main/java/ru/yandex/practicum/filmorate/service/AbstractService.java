@@ -32,8 +32,11 @@ public abstract class AbstractService <T extends Element>{
             log.warn("Ошибка обновления: не найден элемент");
             throw new ValidationException("Ошибка обновления данных: не найден элемент");
         }
-        validate(updatedElement); //проверка корректности переданных данных перед обновлением
+        validate(updatedElement); //проверка корректности переданных данных перед обновление
+ /*!!!!!!!!!!!!!*/ log.warn("abstract service после валидейтв"+ updatedElement);
         int id =storage.update(updatedElement); //обновили данные в хранилище
+        log.warn("abstract service после storage.update");
+
         return storage.getById(id);
     };
 

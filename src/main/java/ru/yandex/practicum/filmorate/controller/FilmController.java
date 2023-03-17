@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.MpaRating;
 import ru.yandex.practicum.filmorate.service.AbstractService;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.storage.Storage;
@@ -13,6 +14,7 @@ import javax.validation.Valid;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/films")
@@ -43,14 +45,20 @@ public class FilmController extends Controller<Film> {
     public Film postNewFilm(@Valid @RequestBody Film newFilm) {
         Film film = filmService.create(newFilm);
         log.info("Создан фильм. Id = {}, название = {}", film.getId(), film.getName());
-        return film;
+        return filmService.getById(film.getId());
     }
 
     @PutMapping
     public Film putFilm(@Valid @RequestBody Film updatedFilm) {
         Film film = filmService.update(updatedFilm);
         log.info("Обновлен фильм. Id = {}, название = {}", film.getId(), film.getName());
-        return film;
+        return filmService.getById(film.getId());
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteFilm(@PathVariable int id) {
+        filmService.delete(id);
+        log.info("Удален Фильм. Id = {}", id);
     }
 
     @PutMapping("/{id}/like/{userId}")
