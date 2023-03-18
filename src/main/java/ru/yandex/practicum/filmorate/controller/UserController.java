@@ -42,7 +42,7 @@ public class UserController extends Controller<User> {
         return user;
     }
 
-    @PutMapping()
+    @PutMapping
     public User updateUser(@Valid @RequestBody User updatedUser) {
         User newuser = userService.update(updatedUser);
         log.info("Обновлен Пользователь. Id = {}, email = {}", newuser.getId(), newuser.getEmail());
@@ -74,8 +74,8 @@ public class UserController extends Controller<User> {
     }
 
     @GetMapping("/{id}/friends/common/{otherId}")
-    public List<User> getCommonFriends (@PathVariable int id, @PathVariable int otherId){
+    public List<User> getCommonFriends(@PathVariable int id, @PathVariable int otherId) {
         log.info("У пользователей с id={}  и {} запрошен список общих друзей", id, otherId);
-        return  ((UserService) userService).getCommonFriends(id,otherId);
+        return ((UserService) userService).getCommonFriends(id, otherId);
     }
 }

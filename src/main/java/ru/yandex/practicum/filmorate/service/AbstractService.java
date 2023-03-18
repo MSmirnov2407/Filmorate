@@ -9,66 +9,71 @@ import ru.yandex.practicum.filmorate.storage.Storage;
 import java.util.List;
 
 @Slf4j
-public abstract class AbstractService <T extends Element>{
+public abstract class AbstractService<T extends Element> {
     protected Storage<T> storage; //хранилище элементов
+
     /**
      * Сохранение элемента в хранилище, с предварительной валидацией и присвоением id
+     *
      * @param element - элемент, который необходимо сохранить в хранилище
      * @return id добавленного в хранилище элемента
      */
-    public T create (T element){
+    public T create(T element) {
         validate(element); //проверка валидности данных
-        int newId=storage.create(element); //сохранили в хранилище
+        int newId = storage.create(element); //сохранили в хранилище
         return storage.getById(newId);
     }
 
     /**
      * обновление элемента в хранилище
+     *
      * @param updatedElement - обновленный элемент
      */
-    public T update (T updatedElement){
+    public T update(T updatedElement) {
         Integer updatedElementId = updatedElement.getId(); //из переданного элемента взали Id
+
         if (storage.getById(updatedElementId) == null) { //если не существует - исключение
             log.warn("Ошибка обновления: не найден элемент");
             throw new ValidationException("Ошибка обновления данных: не найден элемент");
         }
         validate(updatedElement); //проверка корректности переданных данных перед обновление
- /*!!!!!!!!!!!!!*/ log.warn("abstract service после валидейтв"+ updatedElement);
-        int id =storage.update(updatedElement); //обновили данные в хранилище
+        int id = storage.update(updatedElement); //обновили данные в хранилище
         log.warn("abstract service после storage.update");
 
         return storage.getById(id);
-    };
+    }
 
     /**
      * Удаление элемента из хранилища
+     *
      * @param id - Id удаляемого элемента
      */
-    public void delete (int id){
+    public void delete(int id) {
         storage.delete(id);
-    };
+    }
 
     /**
      * Получение всех элементов из хранилища
+     *
      * @return список всех элементов
      */
-    public List<T> getAll (){
+    public List<T> getAll() {
         return storage.getAll();
-    };
+    }
 
     /**
      * Полечение одного элемента из хранилища по Id
+     *
      * @param id - Id требуемого элемента
      * @return
      */
-    public T getById(int id){
+    public T getById(int id) {
         T element = storage.getById(id);
-        if ( element == null){
+        if (element == null) {
             throw new ElementNotFoundException("Элемент не найден");
         }
         return element;
-    };
-
+    }
 
     /**
      * Метод валидации данных по заданным критериям.

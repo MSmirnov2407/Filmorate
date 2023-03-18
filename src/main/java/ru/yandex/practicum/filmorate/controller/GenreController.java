@@ -4,9 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.model.MpaRating;
 import ru.yandex.practicum.filmorate.service.AbstractService;
-import ru.yandex.practicum.filmorate.service.GenreService;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -14,12 +12,12 @@ import java.util.List;
 @RestController
 @RequestMapping("/genres")
 @Slf4j
-public class GenreController extends Controller<Genre>{
+public class GenreController extends Controller<Genre> {
 
     private final AbstractService<Genre> genreService;
 
     @Autowired
-    public GenreController(AbstractService<Genre> genreService){
+    public GenreController(AbstractService<Genre> genreService) {
         this.genreService = genreService;
     }
 
@@ -28,6 +26,7 @@ public class GenreController extends Controller<Genre>{
         log.info("Получен список жанров фильмов");
         return genreService.getAll();
     }
+
     @GetMapping("/{id}")
     public Genre getGenreById(@PathVariable int id) {
         Genre genre = genreService.getById(id);

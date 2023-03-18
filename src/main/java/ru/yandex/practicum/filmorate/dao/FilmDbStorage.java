@@ -71,9 +71,9 @@ public class FilmDbStorage implements FilmStorage {
         if (!element.getGenres().isEmpty()) {
             final String sqlInsertQuery = "insert into film_genre(film_id,genre_id) values(?,?)";
             element.getGenres().forEach(g -> jdbcTemplate.update(sqlInsertQuery, elementId, g.getId()));
-    }
+        }
         return element.id;
-}
+    }
 
     @Override
     public void delete(int id) {
@@ -93,10 +93,22 @@ public class FilmDbStorage implements FilmStorage {
     public Film getById(int id) {
         /*получаем фильм из БД*/
         String sqlQuery = "select * from films where film_id = ?"; //запрос для получения фильма
-        Film film = jdbcTemplate.queryForObject(sqlQuery, this::mapRowToFilm, id); //превращение строки в объект Film
-        /*если фильм не нашелся - исключение*/
-        if (film == null) {
-            throw new ElementNotFoundException("Фильм с id= " + id + " не найден в БД!");
+
+        Film film = new Film();
+
+        SqlRowSet userRows = jdbcTemplate.queryForRowSet(sqlQuery, id);
+        if (userRows.next()) {
+            film.setId(userRows.getInt("film_id"));
+            film.setName(userRows.getString("film_name"));
+            film.setDescription(userRows.getString("description"));
+            film.setReleaseDate(userRows.getDate("release_date").toLocalDate());
+            film.setDuration(userRows.getLong("duration"));
+
+            int mpaId = userRows.getInt("rating");
+            MpaRating mpaRating = mpaRatingService.getById(mpaId);//по id получаем объект рейтинга из таблицы rating
+            film.setMpa(mpaRating);
+        } else {
+            throw new ElementNotFoundException("FilmDbStorage getById фильм не найден");
         }
         /*Складываем в фильм сет из жанров, полученных по его Id*/
         film.setGenres(getGenresByFilm(id));
@@ -111,7 +123,6 @@ public class FilmDbStorage implements FilmStorage {
      */
     public void addLike(Film film, User user) {
         int filmId = film.getId();
-        int userId = user.getId();
         Set<User> likedUsers = new HashSet<>();
 
         likedUsers = this.getLikedUsersByFilm(filmId);//взяли из БД все лайки для фильма
@@ -210,6 +221,7 @@ public class FilmDbStorage implements FilmStorage {
      */
     private Film mapRowToFilm(ResultSet resultSet, int rowNum) throws SQLException {
         Film film = new Film();
+
         film.setId(resultSet.getInt("film_id"));
         film.setName(resultSet.getString("film_name"));
         film.setDescription(resultSet.getString("description"));

@@ -4,13 +4,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.exceptions.ElementNotFoundException;
 import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.model.MpaRating;
-import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.GenreStorage;
-import ru.yandex.practicum.filmorate.storage.MpaRatingStorage;
-import ru.yandex.practicum.filmorate.storage.Storage;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -23,9 +21,10 @@ public class GenreDbStorage implements GenreStorage {
     private final JdbcTemplate jdbcTemplate;
 
     @Autowired
-    public GenreDbStorage (JdbcTemplate jdbcTemplate){
+    public GenreDbStorage(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
+
     @Override
     public int create(Genre element) {
         SimpleJdbcInsert simpleJdbcInsert = new SimpleJdbcInsert(jdbcTemplate)
@@ -38,9 +37,9 @@ public class GenreDbStorage implements GenreStorage {
     public int update(Genre element) {
         int elementId = element.getId();
         String sqlQuery = "update genre set name = ? where genre_id = ?;";
-        jdbcTemplate.update(sqlQuery
-                , element.getName()
-                , elementId);
+        jdbcTemplate.update(sqlQuery,
+                element.getName(),
+                elementId);
         return elementId;
     }
 
@@ -59,7 +58,16 @@ public class GenreDbStorage implements GenreStorage {
     @Override
     public Genre getById(int id) {
         String sqlQuery = "select * from genre where genre_id = ?";
-        return jdbcTemplate.queryForObject(sqlQuery, this::mapRowToGenre, id);
+        Genre genre = new Genre();
+
+        SqlRowSet userRows = jdbcTemplate.queryForRowSet(sqlQuery, id);
+        if (userRows.next()) {
+            genre.setId(userRows.getInt("genre_id"));
+            genre.setName(userRows.getString("genre_name"));
+        } else {
+            throw new ElementNotFoundException("GenreDbStorage getById жанр не найден");
+        }
+        return genre;
     }
 
     /**

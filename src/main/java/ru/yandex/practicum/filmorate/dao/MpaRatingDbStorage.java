@@ -1,13 +1,13 @@
 package ru.yandex.practicum.filmorate.dao;
 
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.exceptions.ElementNotFoundException;
 import ru.yandex.practicum.filmorate.model.MpaRating;
-import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.MpaRatingStorage;
 
 import java.sql.ResultSet;
@@ -57,7 +57,16 @@ public class MpaRatingDbStorage implements MpaRatingStorage {
     @Override
     public MpaRating getById(int id) {
         String sqlQuery = "select * from rating where rating_id = ?";
-        return jdbcTemplate.queryForObject(sqlQuery, this::mapRowToMpaRating, id);
+        MpaRating mpaRating = new MpaRating();
+
+        SqlRowSet userRows = jdbcTemplate.queryForRowSet(sqlQuery, id);
+        if (userRows.next()) {
+            mpaRating.setId(userRows.getInt("rating_id"));
+            mpaRating.setName(userRows.getString("rating_name"));
+        } else {
+            throw new ElementNotFoundException("MpaDbStorage getById рейтинг не найден");
+        }
+        return mpaRating;
     }
 
     /**

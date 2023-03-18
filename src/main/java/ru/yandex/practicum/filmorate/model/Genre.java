@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.model;
 
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.Min;
 import java.util.HashMap;

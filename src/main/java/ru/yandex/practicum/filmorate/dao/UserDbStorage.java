@@ -7,15 +7,16 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.exceptions.ElementNotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 
 @Repository
 @Qualifier("userDbStorage")
@@ -41,12 +42,12 @@ public class UserDbStorage implements UserStorage {
     public int update(User element) {
         int elementId = element.getId();
         String sqlQuery = "update users set login = ?, email = ?, name = ?, birthday = ? where user_id = ?;";
-        jdbcTemplate.update(sqlQuery
-                , element.getLogin()
-                , element.getEmail()
-                , element.getName()
-                , element.getBirthday().toString()
-                , elementId);
+        jdbcTemplate.update(sqlQuery,
+                element.getLogin(),
+                element.getEmail(),
+                element.getName(),
+                element.getBirthday().toString(),
+                elementId);
         return elementId;
     }
 
@@ -58,16 +59,28 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public List<User> getAll() {
-        String sqlQuery = "select * from users";
+        String sqlQuery = "select * from users order by user_id";
         return jdbcTemplate.query(sqlQuery, this::mapRowToUser);
     }
 
     @Override
     public User getById(int id) {
         String sqlQuery = "select * from users where user_id = ?";
-        return jdbcTemplate.queryForObject(sqlQuery, this::mapRowToUser, id);
-    }
 
+        User user = new User();
+        SqlRowSet userRows = jdbcTemplate.queryForRowSet(sqlQuery, id);
+        if (userRows.next()) {
+            user.setId(userRows.getInt("user_id"));
+            user.setLogin(userRows.getString("login"));
+            user.setEmail(userRows.getString("email"));
+            user.setName(userRows.getString("name"));
+            user.setBirthday(userRows.getDate("birthday").toLocalDate());
+        } else {
+            throw new ElementNotFoundException("USerDbStorage Не найден пользователь с id = " + id);
+        }
+        return user;
+
+    }
 
     /**
      * Получение из БД всех друзей пользователя.
@@ -76,7 +89,15 @@ public class UserDbStorage implements UserStorage {
      * @return Set из объектов User
      */
     public Set<User> getFriendsByUserId(int userId) {
-        Set<User> friends = new HashSet<>();
+        Set<User> friends = new TreeSet<>((u1, u2) -> {
+            int cmp = 0;
+            if (u1.getId() > u2.getId()) {
+                cmp = -1;
+            } else if (u1.getId() < u2.getId()) {
+                cmp = 1;
+            }
+            return -1 * cmp;
+        });
 
         /*получаем друзей пользователя из БД*/
         String sqlQuery = "select u.user_id, f.friend_id " +
@@ -165,11 +186,13 @@ public class UserDbStorage implements UserStorage {
      */
     private User mapRowToUser(ResultSet resultSet, int rowNum) throws SQLException {
         User user = new User();
+
         user.setId(resultSet.getInt("user_id"));
         user.setLogin(resultSet.getString("login"));
         user.setEmail(resultSet.getString("email"));
         user.setName(resultSet.getString("name"));
         user.setBirthday(resultSet.getDate("birthday").toLocalDate());
+
         return user;
     }
 }

@@ -4,9 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.MpaRating;
-import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.AbstractService;
-import ru.yandex.practicum.filmorate.service.MpaRatingService;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -18,7 +16,7 @@ public class MpaRatingController extends Controller<MpaRating> {
     private final AbstractService<MpaRating> mpaRatingService;
 
     @Autowired
-    public MpaRatingController (AbstractService<MpaRating> mpaRatingService){
+    public MpaRatingController(AbstractService<MpaRating> mpaRatingService) {
         this.mpaRatingService = mpaRatingService;
     }
 

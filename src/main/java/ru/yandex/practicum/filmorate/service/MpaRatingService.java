@@ -23,7 +23,7 @@ public class MpaRatingService extends AbstractService<MpaRating> {
         boolean badValidation = false; //флаг неуспешной валидации
         String name = element.getName(); //имя проверяемого рейтинга
 
-        if (name.length()>255) { //валидация name
+        if (name.length() > 255) { //валидация name
             validationError = "Некорректное называние рейтинга";
             log.warn(validationError);
             badValidation = true;
