@@ -19,7 +19,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @Sql({"/schema.sql", "/data_local.sql"}) //перед каждым тестом запускается создание исходной базы по заданным скриптам
 @SpringBootTest
 @AutoConfigureTestDatabase
