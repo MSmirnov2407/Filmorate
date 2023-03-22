@@ -100,11 +100,10 @@ public class UserDbStorage implements UserStorage {
         });
 
         /*получаем друзей пользователя из БД*/
-        String sqlQuery = "select u.user_id, f.friend_id, u2.login, u2.email, u2.name, u2.birthday " +
-                "FROM users AS u " +
-                "INNER JOIN friendship AS f ON u.user_id = f.user_id " +
-                "INNER JOIN users AS u2 ON u2.user_id = f.friend_id " +
-                "WHERE u.user_id = ?;"; //запрос для получения друзей пользователя
+        String sqlQuery = "select f.user_id, f.friend_id, u.login, u.email, u.name, u.birthday " +
+                "FROM friendship AS f " +
+                "INNER JOIN users AS u ON u.user_id = f.friend_id " +
+                "WHERE f.user_id = ?;"; //запрос для получения друзей пользователя
         SqlRowSet userRows = jdbcTemplate.queryForRowSet(sqlQuery, userId); //отправка запроса и сохранение результатов в SqlRowSet
 
         /*превращаем полученные данные в сет объектов типа User*/
@@ -130,13 +129,9 @@ public class UserDbStorage implements UserStorage {
         int userId = user.getId();
         Set<User> friends = getFriendsByUserId(userId); //получили сет друзей пользователя
         friends.add(friend); //добавили нового друга в сет
-
-        /*обновляем данные в таблице friendship*/
-        /*удаляем старые данные в таблице friendship*/
-        String sqlQuery = "delete from friendship where user_id = ?";
-        jdbcTemplate.update(sqlQuery, userId);
+        
         /*добавляем новые данные в таблицу friendship*/
-        final String sqlInsertQuery = "insert into friendship(user_id,friend_id) values(?,?)";
+        final String sqlInsertQuery = "merge into friendship(user_id,friend_id) KEY (user_id,friend_id) values(?,?)";
         friends.forEach(f -> jdbcTemplate.update(sqlInsertQuery, userId, f.getId()));
     }
 

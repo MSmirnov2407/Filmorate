@@ -50,7 +50,6 @@ public class UserService extends AbstractService<User, UserDbStorage> {
      * @param friendId - id его нового друга пользователя
      */
     public void addFriend(int userId, int friendId) {
-        Set<User> friends;
         User user = storage.getById(userId); //взяли из хранилищи пользователя и друга
         User friend = storage.getById(friendId); //взяли из хранилищи друга
         if (user == null || friend == null) {
@@ -88,7 +87,7 @@ public class UserService extends AbstractService<User, UserDbStorage> {
             log.warn("пользователь не найден");
             throw new ElementNotFoundException("пользователь не найден");
         }
-        return new ArrayList(storage.getFriendsByUserId(id));
+        return new ArrayList<>(storage.getFriendsByUserId(id));
     }
 
     /**

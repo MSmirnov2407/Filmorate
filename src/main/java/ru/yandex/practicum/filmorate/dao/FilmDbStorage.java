@@ -18,13 +18,12 @@ import ru.yandex.practicum.filmorate.service.MpaRatingService;
 import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
+import java.lang.reflect.Array;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Repository
 @Qualifier("filmDbStorage")
@@ -32,16 +31,10 @@ import java.util.Set;
 public class FilmDbStorage implements FilmStorage {
 
     private final JdbcTemplate jdbcTemplate;
-    private final MpaRatingService mpaRatingService;
-    private final GenreService genreService;
-    private final UserService userService;
 
     @Autowired
     public FilmDbStorage(JdbcTemplate jdbcTemplate, MpaRatingService mpaRatingService, GenreService genreService, UserService userService) {
         this.jdbcTemplate = jdbcTemplate;
-        this.mpaRatingService = mpaRatingService;
-        this.genreService = genreService;
-        this.userService = userService;
     }
 
     @Override
@@ -82,7 +75,7 @@ public class FilmDbStorage implements FilmStorage {
                 "r.rating_name, COUNT(l.user_id) AS count " +
                 "FROM films AS f " +
                 "JOIN rating AS r ON f.rating = r.rating_id " +
-                "LEFT JOIN likes AS l ON l.film_id = f.film_id "+
+                "LEFT JOIN likes AS l ON l.film_id = f.film_id " +
                 "GROUP BY f.film_id " +
                 "ORDER BY count DESC;";
         List<Film> filmList = jdbcTemplate.query(sqlQuery, this::mapRowToFilm);
@@ -128,15 +121,12 @@ public class FilmDbStorage implements FilmStorage {
      */
     public void addLike(Film film, User user) {
         int filmId = film.getId();
-        Set<User> likedUsers;
-
-        likedUsers = this.getLikedUsersByFilm(filmId);//взяли из БД все лайки для фильма
-        likedUsers.add(user); //Добавили новый лайк
+        Set<Integer> likedUsers = this.getLikedUsersByFilm(filmId);//взяли из БД все лайки для фильма
+        likedUsers.add(user.getId()); //Добавили новый лайк
 
         /*добавляем новые данные в таблицу likes*/
         final String sqlInsertQuery = "merge into likes(film_id,user_id) KEY (film_id,user_id) values(?,?)";
-        likedUsers.forEach(u -> jdbcTemplate.update(sqlInsertQuery, filmId, u.getId()));
-
+        likedUsers.forEach(u -> jdbcTemplate.update(sqlInsertQuery, filmId, u));
     }
 
     /**
@@ -155,40 +145,19 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     /**
-     * Получение количества лайков у фильма
-     *
-     * @param filmId id фильма
-     * @return количество лайков
-     */
-    public int getLikeAmountByFilm(int filmId) {
-        int likeAmount = 0;
-        log.info("FilmDbStorage нужный фильм = " + filmId);
-
-        String sqlQuery = "select count(*) AS likesAmount from likes where film_id = ?";
-        SqlRowSet userRows = jdbcTemplate.queryForRowSet(sqlQuery, filmId); //отправка запроса и сохранение результатов в SqlRowSet
-
-        if (userRows.next()) {
-            likeAmount = userRows.getInt("likesAmount"); //извлекаем значение
-        }
-        log.info("FilmDbStorage getLikeAmount = " + likeAmount);
-        return likeAmount;
-    }
-
-    /**
-     * Получение из БД всех полтзователей, лайкнувших фильм.
+     * Получение из БД всех пользователей, лайкнувших фильм.
      *
      * @param filmId - id фильма
      * @return Set из объектов User
      */
-    private Set<User> getLikedUsersByFilm(int filmId) {
-        Set<User> users = new HashSet<>();
+    private Set<Integer> getLikedUsersByFilm(int filmId) {
+        Set<Integer> users = new HashSet<>();
         /*получаем пользователей, лайкнувших фильм из БД*/
         String sqlQuery = "select * from likes where film_id = ? ORDER BY user_id"; //запрос для получения пользователей по фильму
         SqlRowSet userRows = jdbcTemplate.queryForRowSet(sqlQuery, filmId); //отправка запроса и сохранение результатов в SqlRowSet
         /*превращаем полученные записи в сет объектов типа User*/
         while (userRows.next()) { //проходим по всем строкам, извлекаем id и складываем в сет
-            int user_id = userRows.getInt("user_id"); //извлекаем значение
-            users.add(userService.getById(user_id));
+            users.add(userRows.getInt("user_id"));
         }
         return users;
     }
@@ -271,27 +240,38 @@ public class FilmDbStorage implements FilmStorage {
 
     /**
      * Добавление жанров к каждому фильму из списка фильмов (через таблицу film_genre).
+     *
      * @param filmList - список фильмов
      */
     private void setGenresForFilmList(List<Film> filmList) {
-        String sql = "SELECT f.film_id, fg.genre_id, g.genre_name " +
-                "FROM films AS f " +
-                "JOIN FILM_GENRE AS fg ON f.FILM_ID =fg.FILM_ID " +
-                "JOIN GENRE AS g ON fg.GENRE_ID = g.GENRE_ID;";
+        /*из списка фильмов получаем список их id. И создаем строку для условия запроса*/
+        List<String> filmIdlist = filmList.stream()
+                .map(f -> String.valueOf(f.getId()))
+                .collect(Collectors.toList());
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("(");
+        if (filmIdlist.size() != 0) {
+            filmIdlist.forEach(f -> stringBuilder.append(f + ","));
+            stringBuilder.deleteCharAt(stringBuilder.length() - 1);
+        }
+        stringBuilder.append(")");
+
+        String sql = "SELECT fg.film_id, fg.genre_id, g.genre_name " +
+                "FROM FILM_GENRE AS fg " +
+                "JOIN GENRE AS g ON fg.GENRE_ID = g.GENRE_ID " +
+                "WHERE fg.film_id IN " + stringBuilder.toString() + ";";
+
+        /*преобразуем ArrayList в мапу <id, film>*/
+        Map<Integer, Film> filmMap = filmList.stream().collect(Collectors.toMap(Film::getId, film -> film));
         RowCallbackHandler rowCallbackHandler = new RowCallbackHandler() {
             @Override
             public void processRow(ResultSet rs) throws SQLException {
                 int filmId = rs.getInt("film_id");
                 int genreId = rs.getInt("genre_id");
                 String genreName = rs.getString("genre_name");
-                /*пробегаем по фильмам и вставляем жанр при совпадении film_id*/
-                filmList.forEach(f -> {
-                    if (f.getId() == filmId) {
-                        f.addGenre(genreId, genreName);
-                    }
-                });
+                filmMap.get(filmId).addGenre(genreId, genreName); //добавление жанра к фильму
             }
         };
-        jdbcTemplate.query(sql,rowCallbackHandler); //выполняем запрос и обработку результатов
+        jdbcTemplate.query(sql, rowCallbackHandler); //выполняем запрос и обработку результатов
     }
 }
