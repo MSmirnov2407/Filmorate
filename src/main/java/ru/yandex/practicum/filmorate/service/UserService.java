@@ -8,6 +8,7 @@ import ru.yandex.practicum.filmorate.dao.UserDbStorage;
 import ru.yandex.practicum.filmorate.exceptions.ElementNotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -16,10 +17,10 @@ import java.util.Set;
 
 @Service
 @Slf4j
-public class UserService extends AbstractService<User, UserDbStorage> {
+public class UserService extends AbstractService<User, UserStorage> {
 
     @Autowired
-    public UserService(@Qualifier("userDbStorage") UserDbStorage storage) {
+    public UserService(@Qualifier("userDbStorage") UserStorage storage) {
         this.storage = storage;
     }
 

@@ -8,6 +8,7 @@ import ru.yandex.practicum.filmorate.model.User;
 import java.util.Set;
 
 @Component
+@Qualifier("inMemoryFilm")
 public class InMemoryFilmStorage extends AbstractElementStorage<Film> implements FilmStorage{
     @Override
     public void deleteLike(Film film, User user){
