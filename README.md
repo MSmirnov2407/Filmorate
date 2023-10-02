@@ -1,5 +1,5 @@
-# java-filmorate
-Template repository for Filmorate project.
+# FilmoRate
+
 ![DataBase structure](https://github.com/MSmirnov2407/java-filmorate/blob/main/QuickDBD-export.png)
 
 # SQL запросы
